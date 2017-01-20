@@ -64,23 +64,23 @@ defmodule Phoenix.Endpoint.Cowboy2WebSocket do
 
   ## Websocket callbacks
 
-  def websocket_init(req, {handler, args}) do
+  def websocket_init({handler, args}) do
     {:ok, state, _timeout} = handler.ws_init(args)
-    {:ok, req, {handler, state}}
+    {:ok, {handler, state}}
   end
 
-  def websocket_handle({opcode = :text, payload}, req, {handler, state}) do
-    handle_reply req, handler, handler.ws_handle(opcode, payload, state)
+  def websocket_handle({opcode = :text, payload}, {handler, state}) do
+    handle_reply handler, handler.ws_handle(opcode, payload, state)
   end
-  def websocket_handle({opcode = :binary, payload}, req, {handler, state}) do
-    handle_reply req, handler, handler.ws_handle(opcode, payload, state)
+  def websocket_handle({opcode = :binary, payload}, {handler, state}) do
+    handle_reply handler, handler.ws_handle(opcode, payload, state)
   end
-  def websocket_handle(_other, req, {handler, state}) do
-    {:ok, req, {handler, state}}
+  def websocket_handle(_other, {handler, state}) do
+    {:ok, {handler, state}}
   end
 
-  def websocket_info(message, req, {handler, state}) do
-    handle_reply req, handler, handler.ws_info(message, state)
+  def websocket_info(message, {handler, state}) do
+    handle_reply handler, handler.ws_info(message, state)
   end
 
   def terminate({:error, :closed}, _req, {handler, state}) do
@@ -101,13 +101,13 @@ defmodule Phoenix.Endpoint.Cowboy2WebSocket do
     :ok
   end
 
-  defp handle_reply(req, handler, {:shutdown, new_state}) do
-    {:stop, req, {handler, new_state}}
+  defp handle_reply(handler, {:shutdown, new_state}) do
+    {:stop, {handler, new_state}}
   end
-  defp handle_reply(req, handler, {:ok, new_state}) do
-    {:ok, req, {handler, new_state}}
+  defp handle_reply(handler, {:ok, new_state}) do
+    {:ok, {handler, new_state}}
   end
-  defp handle_reply(req, handler, {:reply, {opcode, payload}, new_state}) do
-    {:reply, {opcode, payload}, req, {handler, new_state}}
+  defp handle_reply(handler, {:reply, {opcode, payload}, new_state}) do
+    {:reply, {opcode, payload}, {handler, new_state}}
   end
 end

@@ -26,4 +26,4 @@ available at https://github.com/potatosalad/phoenix/tree/cowboy2
 ### Phoenix
 
 A sample application with plug is available at
-https://github.com/voicelayer/phoenix_http2_example
+https://github.com/voicelayer/phoenix_cowboy2_example

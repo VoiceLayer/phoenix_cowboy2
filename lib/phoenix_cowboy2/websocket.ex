@@ -30,12 +30,12 @@ defmodule Phoenix.Endpoint.Cowboy2WebSocket do
     end
   end
 
-  def upgrade(req, env, __MODULE__, {handler, opts}, timeout, hibernate) do
-    args = [req, env, __MODULE__, {handler, opts}, timeout, hibernate]
+  def upgrade(req, env, __MODULE__, {handler, opts}) do
+    args = [req, env, __MODULE__, {handler, opts}]
     resume(:cowboy_websocket, :upgrade, args)
   end
 
-  def upgrade(_req, _env, __MODULE__, {:error, mfa, kind, reason, stack}, _timeout, _hibernate) do
+  def upgrade(_req, _env, __MODULE__, {:error, mfa, kind, reason, stack}) do
     reason = format_reason(kind, reason, stack)
     exit({reason, mfa})
   end

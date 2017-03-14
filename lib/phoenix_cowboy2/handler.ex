@@ -88,6 +88,7 @@ defmodule Phoenix.Endpoint.Cowboy2Handler do
 
   defp default_for(Phoenix.Transports.LongPoll), do: Plug.Adapters.Cowboy2.Handler
   defp default_for(Phoenix.Transports.WebSocket), do: Phoenix.Endpoint.Cowboy2WebSocket
+  defp default_for(Phoenix.Transports.HTTP2), do: Phoenix.Endpoint.Cowboy2ReqHandler
   defp default_for(_), do: nil
 
   @doc """

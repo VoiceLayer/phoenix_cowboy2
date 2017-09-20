@@ -31,7 +31,12 @@ defmodule Phoenix.Endpoint.Cowboy2WebSocket do
   end
 
   def upgrade(req, env, __MODULE__, {handler, opts}) do
-    args = [req, env, __MODULE__, {handler, opts}]
+    {_socket, transport_opts} = opts
+    websocket_opts =
+      transport_opts
+      |> Keyword.get(:transport_options, [])
+      |> Map.new()
+    args = [req, env, __MODULE__, {handler, opts}, websocket_opts]
     resume(:cowboy_websocket, :upgrade, args)
   end
 

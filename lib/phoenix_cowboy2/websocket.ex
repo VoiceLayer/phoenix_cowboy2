@@ -7,27 +7,7 @@ defmodule Phoenix.Endpoint.Cowboy2WebSocket do
   @already_sent {:plug_conn, :sent}
 
   def init(req, {module, opts}) do
-    conn = @connection.conn(req)
-    try do
-      case module.init(conn, opts) do
-        {:ok, %{adapter: {@connection, req}}, args} ->
-          {__MODULE__, req, args}
-        {:error, %{adapter: {@connection, req}}} ->
-          {:ok, req, :no_state}
-      end
-    catch
-      kind, reason ->
-        # Although we are not performing a call, we are using the call
-        # function for now so it is properly handled in error reports.
-        mfa = {module, :call, [conn, opts]}
-        {__MODULE__, req, {:error, mfa, kind, reason, System.stacktrace}}
-    after
-      receive do
-        @already_sent -> :ok
-      after
-        0 -> :ok
-      end
-    end
+    {:cowboy_websocket, req, {module, req, opts}}
   end
 
   def upgrade(req, env, __MODULE__, {handler, opts}) do
@@ -64,9 +44,27 @@ defmodule Phoenix.Endpoint.Cowboy2WebSocket do
 
   ## Websocket callbacks
 
-  def websocket_init({handler, args}) do
-    {:ok, state, _timeout} = handler.ws_init(args)
-    {:ok, {handler, state}}
+  def websocket_init({module, req, opts}) do
+    conn = @connection.conn(req)
+    try do
+      case module.init(conn, opts) do
+        {:ok, %{adapter: {@connection, _}}, {handler, args}} ->
+          {:ok, state, _timeout} = module.ws_init(args)
+          {:ok, {module, state}}
+      end
+    catch
+      kind, reason ->
+        # Although we are not performing a call, we are using the call
+        # function for now so it is properly handled in error reports.
+        mfa = {module, :call, [conn, opts]}
+      {__MODULE__, req, {:error, mfa, kind, reason, System.stacktrace}}
+    after
+      receive do
+        @already_sent -> :ok
+      after
+        0 -> :ok
+      end
+    end
   end
 
   def websocket_handle({opcode = :text, payload}, {handler, state}) do
